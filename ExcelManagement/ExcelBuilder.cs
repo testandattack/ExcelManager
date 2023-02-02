@@ -68,7 +68,7 @@ namespace ExcelManagement
         #region -- AddWorksheetFromDataTable -----
         public IXLWorksheet AddWorksheetFromDataTable(string name, DataTable dataTable, string tableName)
         {
-            return AddWorksheetFromDataTable(name, dataTable, tableName, "", "");
+            return AddWorksheetFromDataTable(name, dataTable, tableName, "");
         }
 
         public IXLWorksheet AddWorksheetFromDataTable(string name, DataTable dataTable, string tableName, string columnToTextWrap)
