@@ -1,0 +1,17 @@
+{
+  "MergedCells": {
+    "HeaderFontSize": 14,
+    "HeaderBackgroundColorAsSystemColor": "LightGray"
+  },
+  "DataTables": {
+    "startingRow": 1,
+    "startingColumn": 1,
+    "tableThemeName": "TableStyleLight9",
+    "textRotation": 90,
+    "useTextRotationOnHeaders": true
+  },
+  "General": {
+    "maxColumnWidth": 50.0,
+    "defaultWorkbookName": "workbook_{0}.xlsx"
+  }
+}
