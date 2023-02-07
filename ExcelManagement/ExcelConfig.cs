@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,16 +27,30 @@ namespace ExcelManagement
 
     public class MergedCells
     {
+        public string HeaderFontName = "Calibri";
+
         public int HeaderFontSize = 14;
 
-        [JsonIgnore]
-        public XLColor HeaderBackgroundColor;
-        public System.Drawing.Color HeaderBackgroundColorAsSystemColor = XLColor.LightGray.Color;
+        public bool setBold = true;
 
-        public MergedCells()
+        public int rowContainingHeader = 2;
+
+        public int firstColumnOfHeader = 1;
+
+        [JsonIgnore]
+        public XLColor HeaderBackgroundColor
         {
-            HeaderBackgroundColor = XLColor.FromColor(HeaderBackgroundColorAsSystemColor);
+            get
+            {
+                if (HeaderBackgroundColor_ShadePercent == 0)
+                    return XLColor.FromTheme(HeaderBackgroundColor_Theme);
+                else
+                    return XLColor.FromTheme(HeaderBackgroundColor_Theme, HeaderBackgroundColor_ShadePercent);
+            }
         }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public XLThemeColor HeaderBackgroundColor_Theme = XLThemeColor.Accent4;
+        public double HeaderBackgroundColor_ShadePercent = 0.6;
     }
 
     public class DataTables
@@ -60,6 +75,8 @@ namespace ExcelManagement
 
     public class General
     {
+        public string workbookTheme = "";
+
         public double maxColumnWidth = 50;
 
         public string defaultWorkbookName = "workbook_{0}.xlsx";

@@ -13,7 +13,7 @@ namespace ExcelManagement
 {
     public class ExcelBuilder
     {
-        private ExcelConfig _excelConfig;
+        public ExcelConfig excelConfig { get; set; }
 
         public XLWorkbook workbook { get; set; }
         
@@ -22,30 +22,30 @@ namespace ExcelManagement
         #region -- Constructors -----
         public ExcelBuilder()
         {
-            workbook = new XLWorkbook();
+            Initialize("");
         }
 
         public ExcelBuilder(string filename)
         {
-            workbook = new XLWorkbook();
             Initialize(filename);
         }
 
         private void Initialize(string filename)
         {
-            using (StreamReader sr = new StreamReader("ExcelConfig.json"))
-            {
-                _excelConfig = JsonConvert.DeserializeObject<ExcelConfig>(sr.ReadToEnd());
-            }
-
             try
             {
+                workbook = new XLWorkbook();
+                using (StreamReader sr = new StreamReader("ExcelConfig.json"))
+                {
+                    excelConfig = JsonConvert.DeserializeObject<ExcelConfig>(sr.ReadToEnd());
+                }
+
                 if (filename == "")
                 {
-                    string defaultFileName = _excelConfig.General.defaultWorkbookName;
+                    string defaultFileName = excelConfig.General.defaultWorkbookName;
                     if (defaultFileName.Contains("{0}"))
                     {
-                        filename = String.Format(defaultFileName, DateTime.Now.ToShortDateString());
+                        filename = String.Format(defaultFileName, DateTime.Now.ToString("yyyyMMdd-hhmm"));
                     }
                     else
                     {
@@ -57,6 +57,7 @@ namespace ExcelManagement
                     workbookName = filename;
                 else
                     workbookName = $"{filename}.xlsx";
+
             }
             catch (Exception ex)
             {
@@ -78,7 +79,7 @@ namespace ExcelManagement
 
             CreateExcelTableFromDataTable(dataTable, tableName, ws);
 
-            if (_excelConfig.DataTables.useTextRotationOnHeaders)
+            if (excelConfig.DataTables.useTextRotationOnHeaders)
             {
                 var range1 = ws.Range(
                     ws.Cell(4, 1).Address,
@@ -106,18 +107,18 @@ namespace ExcelManagement
         public IXLTable CreateExcelTableFromDataTable(DataTable dataTable, string tableName, string sheetName)
         {
             var ws = workbook.AddWorksheet(sheetName);
-            return CreateExcelTableFromDataTable(dataTable, tableName, ws, _excelConfig.DataTables.startingRow, _excelConfig.DataTables.startingColumn);
+            return CreateExcelTableFromDataTable(dataTable, tableName, ws, excelConfig.DataTables.startingRow, excelConfig.DataTables.startingColumn);
         }
 
         public IXLTable CreateExcelTableFromDataTable(DataTable dataTable, string tableName, IXLWorksheet ws)
         {
-            return CreateExcelTableFromDataTable(dataTable, tableName, ws, _excelConfig.DataTables.startingRow, _excelConfig.DataTables.startingColumn);
+            return CreateExcelTableFromDataTable(dataTable, tableName, ws, excelConfig.DataTables.startingRow, excelConfig.DataTables.startingColumn);
         }
 
         public IXLTable CreateExcelTableFromDataTable(DataTable dataTable, string tableName, IXLWorksheet ws, int startRow, int startColumn)
         {
             var newTable = ws.Cell(startRow, startColumn).InsertTable(dataTable, tableName, true);
-            newTable.Theme = _excelConfig.DataTables.tableTheme;
+            newTable.Theme = excelConfig.DataTables.tableTheme;
             return newTable;
         }
         #endregion
@@ -125,28 +126,55 @@ namespace ExcelManagement
         #region -- CreateMergedHeaderRow -----
         public void CreateMergedHeaderRow(IXLWorksheet sheet, string title, int numColumns)
         {
-            var range = sheet.Range(sheet.Cell(1, 1).Address, sheet.Cell(1, numColumns).Address);
-            range.Merge();
-            range.Style.Font.SetBold().Font.FontSize = _excelConfig.MergedCells.HeaderFontSize;
-            range.Style.Fill.SetBackgroundColor(_excelConfig.MergedCells.HeaderBackgroundColor);
+            CreateMergedHeaderRow(
+                sheet, 
+                title, 
+                excelConfig.MergedCells.firstColumnOfHeader,
+                excelConfig.MergedCells.firstColumnOfHeader + numColumns,
+                excelConfig.MergedCells.rowContainingHeader, 
+                excelConfig.MergedCells.rowContainingHeader);
+        }
+
+        public void CreateMergedHeaderRow(IXLWorksheet sheet, string title, int firstCellColumn, int lastCellColumn)
+        {
+            CreateMergedHeaderRow(
+                sheet, 
+                title, 
+                firstCellColumn, 
+                lastCellColumn, 
+                excelConfig.MergedCells.rowContainingHeader, 
+                excelConfig.MergedCells.rowContainingHeader);
+        }
+
+        public void CreateMergedHeaderRow(IXLWorksheet sheet, string title, int firstCellColumn, int lastCellColumn, int rowNumber)
+        {
+            CreateMergedHeaderRow(
+                sheet, 
+                title, 
+                firstCellColumn, 
+                lastCellColumn, 
+                rowNumber, 
+                rowNumber);
+        }
+
+        public void CreateMergedHeaderRow(IXLWorksheet sheet, string title, int firstCellColumn, int lastCellColumn, int firstRowNumber, int lastRowNumber)
+        {
+            var range = sheet.Range(firstRowNumber, firstCellColumn, lastRowNumber, lastCellColumn);
+            range.Merge().Style.Font.FontSize = excelConfig.MergedCells.HeaderFontSize;
+            if (excelConfig.MergedCells.setBold == true)
+                range.Merge().Style.Font.SetBold();
+            range.Style.Fill.SetBackgroundColor(excelConfig.MergedCells.HeaderBackgroundColor);
+            XLColor.FromTheme(XLThemeColor.Accent4, 0.4);
             range.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
             range.Value = title;
         }
 
-        public void CreateMergedHeaderRow(IXLWorksheet sheet, string title, int iFirstCellColumn, int iLastCellColumn)
-        {
-            var range = sheet.Range(2, iFirstCellColumn, 2, iLastCellColumn);
-            range.Merge().Style.Font.SetBold().Font.FontSize = _excelConfig.MergedCells.HeaderFontSize;
-            range.Style.Fill.SetBackgroundColor(_excelConfig.MergedCells.HeaderBackgroundColor);
-            range.Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-            range.Value = title;
-        }
         #endregion
 
         #region -- SetConditionalColumnWidth -----
         public void SetConditionalColumnWidth(IXLWorksheet sheet, int column)
         {
-            SetConditionalColumnWidth(sheet, column, _excelConfig.General.maxColumnWidth);
+            SetConditionalColumnWidth(sheet, column, excelConfig.General.maxColumnWidth);
         }
 
         public void SetConditionalColumnWidth(IXLWorksheet sheet, int column, double maxColumnwidth)

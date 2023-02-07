@@ -1,7 +1,12 @@
 {
   "MergedCells": {
+    "HeaderFontName": "Calibri",
     "HeaderFontSize": 14,
-    "HeaderBackgroundColorAsSystemColor": "LightGray"
+    "setBold": true,
+    "rowContainingHeader": 2,
+    "firstColumnOfHeader": 1,
+    "HeaderBackgroundColor_Theme": "Accent4",
+    "HeaderBackgroundColor_ShadePercent": 0.6
   },
   "DataTables": {
     "startingRow": 1,
@@ -11,6 +16,7 @@
     "useTextRotationOnHeaders": true
   },
   "General": {
+    "workbookTheme": "",
     "maxColumnWidth": 50.0,
     "defaultWorkbookName": "workbook_{0}.xlsx"
   }
